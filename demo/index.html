@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>jQuery popout</title>
+	<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+	<div id="container">
+		<header>
+			<hgroup>
+				<h1>jQuery popout</h1>
+				<h2>Popout elements made simple</h2>
+			</hgroup>
+			<div id="surprise">
+				<div class="popout-area" data-popout-position="E" data-popout-anchor="W">
+					<a href="#" class="popout-button yellow">Surprise!</a>
+					<div class="popout-content simple-popout">
+						I'm on <a href="https://github.com">github</a>!
+					</div>
+				</div>
+			</div>
+		</header>
+		<section id="demos">
+		
+			<p>Generating demos...</p>
+		
+		</section>
+	</div>
+	<script type="text/javascript" src="extra/js/jquery-1.6.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-popout.js"></script>
+	<script type="text/javascript">
+		(function($){
+			
+			//dinamically generates the demos
+			$('#demos').html("");
+			var cicle = ["NW", "N", "NE", "W", "C", "E", "SW", "S", "SE"];
+			var counter = 1;
+			
+			for(var i=0; i < cicle.length; i++)
+			{
+				for(var j=0; j < cicle.length; j++)
+				{
+					var third = "";
+					if(counter%3 == 0)
+						third = " third";
+					var id = "demo-" + counter + "-" + cicle[i] + "-" + cicle[j];
+					var code = '<section id="' + id + '" class="demo'+third+'">';
+						code+= '<h2><span class="pos">Position</span>: ' + cicle[i] + ', <span class="anc">Anchor</span>: ' + cicle[j] + '</h2>';
+						code+= '<div class="popout-area" data-popout-position="'+cicle[i]+'" data-popout-anchor="'+cicle[j]+'"><span class="marker marker-'+ cicle[i] +'"/><a href="#" class="popout-button yellow">Click!</a><div class="popout-content simple-popout"><span class="marker marker-'+ cicle[j] +'"/>Hello World!</div></div></section>';
+					$('#demos').append(code);
+					counter++;
+				}
+			}
+			
+			$(".popout-area").popout();
+			
+		})(jQuery);
+	</script>
+</body>
+</html>
