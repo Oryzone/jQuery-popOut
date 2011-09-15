@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>jQuery popout</title>
+	<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+	<div id="container">
+		<header>
+			<hgroup>
+				<h1>jQuery popout</h1>
+				<h2>Popout elements made simple</h2>
+			</hgroup>
+			<div id="surprise">
+				<div class="popout-area" data-popout-position="E" data-popout-anchor="W">
+					<a href="#" class="popout-button yellow">Surprise!</a>
+					<div class="popout-content simple-popout">
+						I'm on <a href="https://github.com/Oryzone/jQuery-popOut">github</a>!
+					</div>
+				</div>
+			</div>
+		</header>
+		<section id="demo">
+		
+		<div class="popout-area">
+			
+			<a href="#" class="popout-button yellow">
+				Here for you to be clicked!
+			</a>
+			<div class="popout-content">
+				<blockquote><pre>I see skies of blue, 
+And clouds of white. 
+The bright blessed day, 
+The dark sacred night. 
+And I think to myself, 
+What a wonderful world.
+
+- Luis Armstrong</pre></blockquote>
+<a href="#" class="popout-close">(Close)</a>
+			</div>
+			
+		</div>
+		
+		</section>
+	</div>
+	<script type="text/javascript" src="extra/js/jquery-1.6.3.js"></script>
+	<script type="text/javascript" src="../js/jquery-popout.js"></script>
+	<script type="text/javascript">
+		(function($){
+			
+			$(".popout-area").popout();
+			
+		})(jQuery);
+	</script>
+</body>
+</html>

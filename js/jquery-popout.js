@@ -26,9 +26,11 @@
         self.defaults = {
                 'button'			: '.popout-button',
                 'content'			: '.popout-content',
+				'closeButton'		: '.popout-close', 
                 'openClass'			: 'popout-open',
                 'closeOnHoverOut'	: true,
 				'closeDelay'		: 500,
+				'useCloseButton'	: true,
                 'z-index'			: 9999,
                 'contentPosition'	: 'absolute',
                 'displayOn'			: 'block',
@@ -218,6 +220,15 @@
                                                            "top"      : 0});
 
             obj.popoutButton = obj.find(self.options.button);
+
+			obj.popoutCloseButton = obj.find(self.options.closeButton);
+			
+			if( self.options.useCloseButton && obj.popoutCloseButton.size() > 0 )
+			{
+				obj.popoutCloseButton.click(function(){
+					obj.closePopout();
+				});
+			}
 
             obj.isPopoutOpen = function()
             {
