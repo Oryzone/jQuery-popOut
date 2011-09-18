@@ -9,6 +9,16 @@
     };
     
     
+    $.fn.popoutInstance = function()
+    {
+        var instance = undefined;
+        if(this.data('popout') && (instance = this.data('popout').instance))
+            return instance;
+        
+        return undefined;
+    }
+    
+    
     
     var Popout = function(container, options)
     {
@@ -85,6 +95,30 @@
                     self.close();
                 });
             }
+            
+            
+            var createGlassPane = function()
+            {
+                self.glassPane = $('<div class="popout-glassPane"/>').css({
+                    position    : "absolute",
+                    "z-index"   : self.options['z-index'] - 1,
+                    width       : "100%",
+                    height      : "100%",
+                    top         : 0,
+                    left        : 0
+                }).click(function(){
+                    self.close();
+                }).appendTo($('body'));
+            };
+            
+            var destroyGlassPane = function()
+            {
+                if(self.glassPane)
+                {
+                    self.glassPane.remove();
+                    self.glassPane = undefined;
+                }
+            };
 
 
             self.isOpen = function()
@@ -104,6 +138,9 @@
                         self.options.distance[1]
                       );
 
+                if(self.options.closeOnClickOut)
+                    createGlassPane();
+
                 self.content.addClass(self.options.openClass).css({
                     left    : pos[0] + "px",
                     top     : pos[1] + "px",
@@ -114,6 +151,7 @@
 
             self.close = function()
             {
+                destroyGlassPane();
                 self.cancelDelayedClose();    
 		self.content.removeClass(self.options.openClass)
                             .css('display', self.options.displayOff);
@@ -195,6 +233,7 @@
         'closeButton'       : '.popout-close', 
         'openClass'         : 'popout-open',
         'closeOnHoverOut'   : true,
+        'closeOnClickOut'   : false,
         'closeDelay'        : 500,
         'useCloseButton'    : true,
         'z-index'           : 9999,
