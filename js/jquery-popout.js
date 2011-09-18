@@ -90,10 +90,13 @@
 
             if( self.options.useCloseButton && self.closeButton.size() > 0 )
             {
-                self.closeButton.click(function()
+                if(self.options.openOnClick)
                 {
-                    self.close();
-                });
+                    self.closeButton.click(function()
+                    {
+                        self.close();
+                    });
+                }
             }
             
             
@@ -105,7 +108,9 @@
                     width       : "100%",
                     height      : "100%",
                     top         : 0,
-                    left        : 0
+                    left        : 0,
+                    margin      : 0,
+                    padding     : 0
                 }).click(function(){
                     self.close();
                 }).appendTo($('body'));
@@ -203,6 +208,9 @@
             self.container.hover(
                 function()
                 {
+                    if(self.options.openOnHover && !self.isOpen())
+                        self.open();
+                    
                     if(self.isOpen() && self.options.closeOnHoverOut)
                         self.cancelDelayedClose();
                 },
@@ -232,6 +240,8 @@
         'content'           : '.popout-content',
         'closeButton'       : '.popout-close', 
         'openClass'         : 'popout-open',
+        'openOnHover'       : false,
+        'openOnClick'       : true,
         'closeOnHoverOut'   : true,
         'closeOnClickOut'   : false,
         'closeDelay'        : 500,
