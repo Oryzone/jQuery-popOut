@@ -80,9 +80,11 @@
 
 
             self.content = self.container.find(self.options.content)
-                                                .css({ "position" : self.options.contentPosition,
-                                                       "z-index"  : self.options['z-index'],
-                                                       "top"      : 0});
+                                         .css({ "position" : self.options.contentPosition,
+                                                "z-index"  : self.options['z-index'],
+                                                "top"      : 0});;                                                                           
+            if(self.content.size() == 0)
+                throw "CannotFindContentException: the selector '" + self.options.content + "' was not able to find any element";
 
             self.button = self.container.find(self.options.button);
 
@@ -224,6 +226,12 @@
             //adds the current instance to the container DOM element data
             self.container.data('popout', {'instance' : self });
 
+        };
+        
+        
+        self.destroy = function()
+        {
+            //TODO
         };
         
         
