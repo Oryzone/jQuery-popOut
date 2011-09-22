@@ -21,7 +21,18 @@ Oryzone.Popout = function(el, options)
     }
 };
 
-(function($){  
+(function($){
+    
+    // Adds destroyed event, raised when an element is removed from the DOM
+    // from javascript MVC (http://javascriptmvc.com/)
+    var oldClean = jQuery.cleanData;
+    $.cleanData = function( elems ) {
+        for ( var i = 0, elem;
+        (elem = elems[i]) !== undefined; i++ ) {
+            $(elem).triggerHandler("destroyed");
+        }
+        oldClean(elems);
+    };
     
     // the set of default options
     var defaults =
@@ -213,12 +224,18 @@ Oryzone.Popout = function(el, options)
             after = args.slice(1);
         
         return this.each( function()
-        {
-             if (typeof options == "string" && 
-                 (instance = getInstance(this)))
+        {    
+             if((instance = getInstance(this)))
              {
-                instance[options].apply(instance, after);
-             }
+                 if (typeof options == "string")
+                 {
+                     instance[options].apply(instance, after);
+                 }
+                 else
+                 {
+                     instance.update(options);
+                 }
+             }             
              else
              {
                 new Oryzone.Popout($(this), options);
@@ -307,7 +324,12 @@ Oryzone.Popout = function(el, options)
         
         // a set of variables that should not be modified at runtime
         _private : {
-            timeout : null
+            timeout : null,
+            defaults: 
+            {
+                container : {},
+                content : {}
+            }
         },
         
         // Initializes the object
@@ -321,13 +343,22 @@ Oryzone.Popout = function(el, options)
             
             // sets the current container
             this.container = el;
+            this._private.defaults.container.position = this.container.css("position");
             this.container.css("position", "relative");
             
             // sets the content
-            this.content = this.container.find(this.options.content)
-                                         .css({"position" : this.options.contentPosition,
-                                                "z-index"  : this.options['z-index'],
-                                                "top"      : 0});
+            this.content = this.container.find(this.options.content);
+        
+            this._private.defaults.content = {
+                position  : this.content.css("position"),
+                "z-index" : this.content.css("z-index"),
+                top       : this.content.css("top")
+            };
+        
+            this.content.css({"position" : this.options.contentPosition,
+                              "z-index"  : this.options['z-index'],
+                              "top"      : 0});
+                          
             // throws an exception if cannot find the content element
             if(this.content.size() == 0)
                 throw "CannotFindContentException: the selector '" + this.options.content + 
@@ -380,6 +411,8 @@ Oryzone.Popout = function(el, options)
             this.onMouseOut = $.proxy(onMouseOut, this);
             
             //binds events to handlers
+            this.container.bind("destroyed", $.proxy(this.teardown, this));
+            
             this.button.bind("click", this.onButtonClick);
             
             if( this.options.useCloseButton && this.closeButton.size() > 0 )
@@ -401,24 +434,42 @@ Oryzone.Popout = function(el, options)
             this.closeButton.unbind("click", this.onCloseButtonClick);
             this.container.unbind("mouseover", this.onMouseOver);
             this.container.unbind("mouseout", this.onMouseOut);
+            this.container.unbind("destroyed", this.teardown);
         },
         
         // updates the plugin to be conform to a new set of options
         update : function(options)
         {
-            // TODO
+            this.destroy();
+            this.init(this.container, options);
         },
         
         // destroys the instance
         destroy : function()
         {
-           //TODO 
+            this.teardown();
         },
         
         // removes all the functionalities of the plugin
         teardown : function()
         {
-            //TODO
+            // removes the attached data
+            this.container.removeData(this.name);
+            
+            // restores the old container position
+            this.container.css(this._private.defaults.container);
+            this.content.css(this._private.defaults.content);
+            
+            // removes the open class
+            this.content.removeClass(this.options.openClass);
+            
+            // unbinds all the handlers
+            this.unbind();
+            
+            // nullify all references
+            this.button = undefined;
+            this.closeButton = undefined;
+            this.content = undefined;
         },
         
         // checks if the current popout is opened
