@@ -1,248 +1,30 @@
+/*!
+ * jQuery-popOut vers. 1.0
+ * developed by Luciano Mammino and Mangano Andrea, sponsored by ORYZONE (http://oryzone.com)
+ * 
+ * Released under MIT license (http://en.wikipedia.org/wiki/MIT_License)
+ * 
+ * Bug reports, suggestions, compliments? Use github: https://github.com/Oryzone/jQuery-popOut
+ */
+
+
+// initializes the Oryzone namespace if needed
+if(typeof(Oryzone)=="undefined")
+    Oryzone = {};
+
+// constructor
+Oryzone.Popout = function(el, options)
+{
+    if(el)
+    {
+        this.init(el, options);
+    }
+};
+
 (function($){  
     
-    $.fn.popout = function(options)
-    {  
-        return this.each(function()
-        {
-             new Popout($(this), options);
-        });	
-    };
-    
-    
-    $.fn.popoutInstance = function()
-    {
-        var instance = undefined;
-        if(this.data('popout') && (instance = this.data('popout').instance))
-            return instance;
-        
-        return undefined;
-    }
-    
-    
-    
-    var Popout = function(container, options)
-    {
-        var self = this;
-        var timeout = null;
-
-        var calculateFinalPosition = function(cw, ch, pw, ph, dx, dy)
-        {
-            return [
-                eval(
-                    Popout.cTabPosition[self.options.position[0]][self.options.position[1]]['x'] + 
-                    Popout.cTabAnchor[self.options.anchor[0]][self.options.anchor[1]]['x'] +
-                    "+dx"
-                ),
-                eval(
-                    Popout.cTabPosition[self.options.position[0]][self.options.position[1]]['y'] + 
-                    Popout.cTabAnchor[self.options.anchor[0]][self.options.anchor[1]]['y'] +
-                    "+dy"
-                )
-            ];
-        };
-
-        // merges the provided options with the default ones
-        self.options = $.extend({}, Popout.defaults, options);   
-
-
-        // initializes the instance
-        var init = function()
-        {  
-            self.container = container;  // the current element
-            self.container.css("position", "relative");
-
-            //reads the data attached to the container
-            self.data = self.container.data("popout");
-            if(!self.data)
-            {
-                //tries to normalize attached data
-                self.data = {
-                    distance : self.container.data().popoutDistance,
-                    position : self.container.data().popoutPosition,
-                    anchor : self.container.data().popoutAnchor
-                };
-            }
-
-            //parsing options
-            if(self.options.distance == "data")
-                self.options.distance = (self.data && self.data.distance) ? self.data.distance : self.options.defaultDistance;
-
-            if(self.options.anchor == "data")
-                self.options.anchor = (self.data && self.data.anchor) ? self.data.anchor : self.options.defaultAnchor;
-
-            if(self.options.position == "data")
-                self.options.position = (self.data && self.data.position) ? self.data.position : self.options.defaultPosition;
-
-            //normalizes distance and references
-            self.options.distance = Popout.normalizeDistance(self.options.distance);
-            self.options.anchor = Popout.normalizeRef(self.options.anchor);
-            self.options.position = Popout.normalizeRef(self.options.position);
-
-
-            self.content = self.container.find(self.options.content)
-                                         .css({ "position" : self.options.contentPosition,
-                                                "z-index"  : self.options['z-index'],
-                                                "top"      : 0});;                                                                           
-            if(self.content.size() == 0)
-                throw "CannotFindContentException: the selector '" + self.options.content + "' was not able to find any element";
-
-            self.button = self.container.find(self.options.button);
-
-            self.closeButton = self.container.find(self.options.closeButton);
-
-            if( self.options.useCloseButton && self.closeButton.size() > 0 )
-            {
-                if(self.options.openOnClick)
-                {
-                    self.closeButton.click(function()
-                    {
-                        self.close();
-                    });
-                }
-            }
-            
-            
-            var createGlassPane = function()
-            {
-                self.glassPane = $('<div class="popout-glassPane"/>').css({
-                    position    : "absolute",
-                    "z-index"   : self.options['z-index'] - 1,
-                    width       : "100%",
-                    height      : "100%",
-                    top         : 0,
-                    left        : 0,
-                    margin      : 0,
-                    padding     : 0
-                }).click(function(){
-                    self.close();
-                }).appendTo($('body'));
-            };
-            
-            var destroyGlassPane = function()
-            {
-                if(self.glassPane)
-                {
-                    self.glassPane.remove();
-                    self.glassPane = undefined;
-                }
-            };
-
-
-            self.isOpen = function()
-            {
-                return self.content.hasClass(self.options.openClass);
-            };
-
-
-            self.open = function()
-            {
-                pos = calculateFinalPosition(
-                        self.button.outerWidth(), 
-                        self.button.outerHeight(),
-                        self.content.outerWidth(), 
-                        self.content.outerHeight(),
-                        self.options.distance[0],
-                        self.options.distance[1]
-                      );
-
-                if(self.options.closeOnClickOut)
-                    createGlassPane();
-
-                self.content.addClass(self.options.openClass).css({
-                    left    : pos[0] + "px",
-                    top     : pos[1] + "px",
-                    display : self.options.displayOn
-                });
-            };
-
-
-            self.close = function()
-            {
-                destroyGlassPane();
-                self.cancelDelayedClose();    
-		self.content.removeClass(self.options.openClass)
-                            .css('display', self.options.displayOff);
-            };
-
-
-            self.toggle = function()
-            {
-                if(self.isOpen())
-                        self.close();
-                else
-                        self.open();
-            };
-
-
-            self.delayedClose = function(delay)
-            {
-                if(delay)
-                {
-                    if("number" != typeof delay)
-                        throw "InvalidArgumentException: '" + delay + "' is not a valid delay";
-                }
-                else
-                {
-                    delay = self.options.closeDelay;
-                }
-                    
-                self.cancelDelayedClose();
-                timeout = setTimeout(
-                    function(){
-                        self.close();
-                    }, delay
-                );
-            };
-
-            self.cancelDelayedClose = function()
-            {
-                if(timeout)
-                    clearTimeout(timeout);
-            };
-
-
-            self.button.click( function(){
-                self.toggle();
-                return false;
-            });
-
-
-            self.container.hover(
-                function()
-                {
-                    if(self.options.openOnHover && !self.isOpen())
-                        self.open();
-                    
-                    if(self.isOpen() && self.options.closeOnHoverOut)
-                        self.cancelDelayedClose();
-                },
-                function()
-                {
-                    if(self.isOpen && self.options.closeOnHoverOut)
-                        self.delayedClose();
-                }
-            );
-
-            //adds the current instance to the container DOM element data
-            self.container.data('popout', {'instance' : self });
-
-        };
-        
-        
-        self.destroy = function()
-        {
-            //TODO
-        };
-        
-        
-        // automatically calls the init method at initialization
-        init();
-
-    };
-    
-
-    // the set of the default options
-    Popout.defaults =
+    // the set of default options
+    var defaults =
     {
         'button'            : '.popout-button',
         'content'           : '.popout-content',
@@ -268,7 +50,7 @@
 
 
     // table used to convert shortcut relative position from geographic to directional
-    Popout.geo2dir = 
+    var geo2dir = 
     {
         'NW' : ['left'  , 'top'],
         'N'  : ['center', 'top'],
@@ -283,73 +65,74 @@
 
 
     // formulas table used to calculate of the popout box position
-    Popout.cTabPosition = 
+    var cTabPosition = 
     {
         'left' : {
-            'top'   : { 'x': "+0",
-                        'y': "+0" },
-            'center': { 'x': "+0",
-                        'y': "+ch/2" },
-            'bottom': { 'x': "+0",
-                        'y': "+ch" }
+            'top'   : {'x': "+0",
+                       'y': "+0"},
+            'center': {'x': "+0",
+                       'y': "+ch/2"},
+            'bottom': {'x': "+0",
+                       'y': "+ch"}
         },
         'center': {
-            'top'   : { 'x': "+cw/2",
-                        'y': "+0" },
-            'center': { 'x': "+cw/2",
-                        'y': "+ch/2" },
-            'bottom': { 'x': "+cw/2",
-                        'y': "+ch" }
+            'top'   : {'x': "+cw/2",
+                       'y': "+0"},
+            'center': {'x': "+cw/2",
+                       'y': "+ch/2"},
+            'bottom': {'x': "+cw/2",
+                       'y': "+ch"}
         },
         'right': {
-            'top'   : { 'x': "+cw",
-                        'y': "+0" },
-            'center': { 'x': "+cw",
-                        'y': "+ch/2" },
-            'bottom': { 'x': "+cw",
-                        'y': "+ch" }
+            'top'   : {'x': "+cw",
+                       'y': "+0"},
+            'center': {'x': "+cw",
+                       'y': "+ch/2"},
+            'bottom': {'x': "+cw",
+                       'y': "+ch"}
         }
     };
 
 
     // formulas table used to calculate of the popout box offset
-    Popout.cTabAnchor = 
+    var cTabAnchor = 
     {
         'left' : {
-            'top'   : { 'x': "+0",
-                        'y': "+0" },
-            'center': { 'x': "+0",
-                        'y': "-ph/2" },
-            'bottom': { 'x': "+0",
-                        'y': "-ph" }
+            'top'   : {'x': "+0",
+                       'y': "+0"},
+            'center': {'x': "+0",
+                       'y': "-ph/2"},
+            'bottom': {'x': "+0",
+                       'y': "-ph"}
         },
         'center': {
-            'top'   : { 'x': "-pw/2",
-                        'y': "+0" },
-            'center': { 'x': "-pw/2",
-                        'y': "-ph/2" },
-            'bottom': { 'x': "-pw/2",
-                        'y': "-ph" }
+            'top'   : {'x': "-pw/2",
+                       'y': "+0"},
+            'center': {'x': "-pw/2",
+                       'y': "-ph/2"},
+            'bottom': {'x': "-pw/2",
+                       'y': "-ph"}
         },
         'right': {
-            'top'   : { 'x': "-pw",
-                        'y': "+0" },
-            'center': { 'x': "-pw",
-                        'y': "-ph/2" },
-            'bottom': { 'x': "-pw",
-                        'y': "-ph" }
+            'top'   : {'x': "-pw",
+                       'y': "+0"},
+            'center': {'x': "-pw",
+                       'y': "-ph/2"},
+            'bottom': {'x': "-pw",
+                       'y': "-ph"}
         }
     };
 
-
-    Popout.normalizeRef = function(ref)
+    // normalizes a position reference by converting it to a 2 coordinate relative reference
+    // E.g. converts NW (North-West) to ["top", "left"]
+    var normalizeRef = function(ref)
     {
         if('string' == typeof ref)
         {
             ref = ref.toUpperCase();
 
-            if(Popout.geo2dir[ref] != null)
-                    return Popout.geo2dir[ref];
+            if(geo2dir[ref] != null)
+                    return geo2dir[ref];
         }
 
         else if(ref instanceof Array && ref.length == 2)
@@ -377,8 +160,9 @@
     };
 
 
-    
-    Popout.normalizeDistance = function(distance)
+    // normalizes a distance by converting it (from a number or a string) to an
+    // array of 2 values that represents respectively the x and y distances. (top, left distances)
+    var normalizeDistance = function(distance)
     {
         if("number" == typeof distance ||
            ("string" == typeof distance && parseInt(distance) != NaN)
@@ -395,5 +179,334 @@
 
         throw "InvalidArgumentException: '" + distance + "' is not a valid distance";
     }
+    
+    
+    // calculates the final position of a popout content
+    var calculateFinalPosition = function(cw, ch, pw, ph, dx, dy, 
+                                            pos_x, pos_y, anch_x, anch_y)
+    {
+        return [
+            eval(
+                cTabPosition[pos_x][pos_y]['x'] + 
+                cTabAnchor[anch_x][anch_y]['x'] +
+                "+dx"
+            ),
+            eval(
+                cTabPosition[pos_x][pos_y]['y'] + 
+                cTabAnchor[anch_x][anch_y]['y'] +
+                "+dy"
+            )
+        ];
+    };
+    
+    // gets the popout instance attached to a DOM element (if any)
+    var getInstance = function(el)
+    {
+        el = $(el);
+        return el.data('oryzone_popout');
+    }
+    
+    // jQuery plugin initialization
+    $.fn.popout = function(options)
+    {  
+        var args = $.makeArray(arguments),
+            after = args.slice(1);
+        
+        return this.each( function()
+        {
+             if (typeof options == "string" && 
+                 (instance = getInstance(this)))
+             {
+                instance[options].apply(instance, after);
+             }
+             else
+             {
+                new Oryzone.Popout($(this), options);
+             }
+        });	
+    };
+    
+    // retrieves the first instance of the popout attached to the list of elements
+    // retrieved by a selector (if any)
+    $.fn.popoutInstance = function()
+    {
+        var instance = undefined;
+        if(this.data('popout') && (instance = getInstance(this)))
+            return instance;
+        
+        return undefined;
+    }
+    
+    
+    // utility function that creates a background clickable glass pane
+    var createGlassPane = function()
+    {
+        this.glassPane = $('<div class="popout-glassPane"/>').css({
+            position    : "absolute",
+            "z-index"   : this.options['z-index'] - 1,
+            width       : "100%",
+            height      : "100%",
+            top         : 0,
+            left        : 0,
+            margin      : 0,
+            padding     : 0
+        }).click(function(){
+            this.close();
+        }).appendTo($('body'));
+    };
+
+    // destroys the glasspane
+    var destroyGlassPane = function()
+    {
+        if(this.glassPane)
+        {
+            this.glassPane.remove();
+            this.glassPane = undefined;
+        }
+    };
+    
+    // on button click handler
+    var onButtonClick = function(event)
+    {
+        event.preventDefault();
+        this.toggle();
+    };
+    
+    // on close button click handler
+    var onCloseButtonClick = function(event)
+    {
+        event.preventDefault();
+        this.close();
+    };
+    
+    // on container mouseover handler
+    var onMouseOver = function(event)
+    {
+        if(this.options.openOnHover && !this.isOpen())
+            this.open();
+
+        if(this.isOpen() && this.options.closeOnHoverOut)
+            this.cancelDelayedClose();
+    };
+    
+    // on mouseout container handler
+    var onMouseOut = function(event)
+    {
+        if(this.isOpen && this.options.closeOnHoverOut)
+            this.delayedClose();
+    };
+    
+    // defines the Popout prototype
+    $.extend(Oryzone.Popout.prototype, {
+        
+        // the name of the instance
+        name: "oryzone_popout",
+        
+        // the current version
+        version: 1.0,
+        
+        // a set of variables that should not be modified at runtime
+        _private : {
+            timeout : null
+        },
+        
+        // Initializes the object
+        init: function(el, options)
+        {
+            // save this instance in jQuery data
+            el.data(this.name, this);
+
+            // merges the provided options with the default ones
+            this.options = $.extend({}, defaults, options);
+            
+            // sets the current container
+            this.container = el;
+            this.container.css("position", "relative");
+            
+            // sets the content
+            this.content = this.container.find(this.options.content)
+                                         .css({"position" : this.options.contentPosition,
+                                                "z-index"  : this.options['z-index'],
+                                                "top"      : 0});
+            // throws an exception if cannot find the content element
+            if(this.content.size() == 0)
+                throw "CannotFindContentException: the selector '" + this.options.content + 
+                      "' was not able to find any element";
+            
+            //sets the button 
+            this.button = this.container.find(this.options.button);
+
+            //sets the close button
+            this.closeButton = this.container.find(this.options.closeButton);
+            
+            //reads the data attached to the container
+            var data = this.container.data("popout");
+            if(!data)
+            {
+                //tries to normalize attached data
+                data = {
+                    distance : this.container.data().popoutDistance,
+                    position : this.container.data().popoutPosition,
+                    anchor   : this.container.data().popoutAnchor
+                };
+            }
+            
+            //parsing options
+            if(this.options.distance == "data")
+                this.options.distance = (data && data.distance) ? data.distance : this.options.defaultDistance;
+
+            if(this.options.anchor == "data")
+                this.options.anchor = (data && data.anchor) ? data.anchor : this.options.defaultAnchor;
+
+            if(this.options.position == "data")
+                this.options.position = (data && data.position) ? data.position : this.options.defaultPosition;
+
+            //normalizes distance and references
+            this.options.distance = normalizeDistance(this.options.distance);
+            this.options.anchor = normalizeRef(this.options.anchor);
+            this.options.position = normalizeRef(this.options.position);
+            
+            //calls the bind method to attach all the listeners
+            this.bind();
+        },
+        
+        // attaches all the listeners
+        bind : function()
+        {
+            //prepares event handlers
+            this.onButtonClick = $.proxy(onButtonClick, this);
+            this.onCloseButtonClick = $.proxy(onCloseButtonClick, this);
+            this.onMouseOver = $.proxy(onMouseOver, this);
+            this.onMouseOut = $.proxy(onMouseOut, this);
+            
+            //binds events to handlers
+            this.button.bind("click", this.onButtonClick);
+            
+            if( this.options.useCloseButton && this.closeButton.size() > 0 )
+            {
+                if(this.options.openOnClick)
+                {
+                    this.closeButton.bind("click", this.onCloseButtonClick);
+                }
+            }
+            
+            this.container.bind("mouseover", this.onMouseOver);
+            this.container.bind("mouseout", this.onMouseOut);
+        },
+        
+        // unattaches all the listener
+        unbind : function()
+        {
+            this.button.unbind("click", this.onButtonClick);
+            this.closeButton.unbind("click", this.onCloseButtonClick);
+            this.container.unbind("mouseover", this.onMouseOver);
+            this.container.unbind("mouseout", this.onMouseOut);
+        },
+        
+        // updates the plugin to be conform to a new set of options
+        update : function(options)
+        {
+            // TODO
+        },
+        
+        // destroys the instance
+        destroy : function()
+        {
+           //TODO 
+        },
+        
+        // removes all the functionalities of the plugin
+        teardown : function()
+        {
+            //TODO
+        },
+        
+        // checks if the current popout is opened
+        isOpen : function()
+        {
+            return this.content.hasClass(this.options.openClass);
+        },
+
+        // opens the popout element
+        open : function()
+        {
+            pos = calculateFinalPosition(
+                    this.button.outerWidth(), 
+                    this.button.outerHeight(),
+                    this.content.outerWidth(), 
+                    this.content.outerHeight(),
+                    this.options.distance[0],
+                    this.options.distance[1],
+                    this.options.position[0],
+                    this.options.position[1],
+                    this.options.anchor[0],
+                    this.options.anchor[1]
+            );
+
+            if(this.options.closeOnClickOut)
+                $.proxy(createGlassPane, this)();
+
+            this.content.addClass(this.options.openClass).css({
+                left    : pos[0] + "px",
+                top     : pos[1] + "px",
+                display : this.options.displayOn
+            });
+
+            return this;
+        },
+
+        // closes the popout element
+        close : function()
+        {
+            $.proxy(destroyGlassPane, this)();
+            this.cancelDelayedClose();    
+            this.content.removeClass(this.options.openClass)
+                        .css('display', this.options.displayOff);
+
+            return this;
+        },
+
+        // open the popout if closed and closes it otherwise
+        toggle : function()
+        {
+            if(this.isOpen())
+                this.close();
+            else
+                this.open();
+
+            return this;
+        },
+
+        // closes the popout after `delay` millisecs
+        delayedClose : function(delay)
+        {
+            if(delay)
+            {
+                if("number" != typeof delay)
+                    throw "InvalidArgumentException: '" + delay + "' is not a valid delay";
+            }
+            else
+            {
+                delay = this.options.closeDelay;
+            }
+
+            this.cancelDelayedClose();
+            
+            var self = this;
+            this._private.timeout = setTimeout(function(){self.close()}, delay);
+
+            return this;
+        },
+
+        // cancel the delay close timeout (avoid closing the popout)
+        cancelDelayedClose : function()
+        {
+            if(this._private.timeout)
+                clearTimeout(this._private.timeout);
+
+            return this;
+        }
+        
+    });
      
 })(jQuery);
