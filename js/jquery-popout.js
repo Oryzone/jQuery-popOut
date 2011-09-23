@@ -294,6 +294,11 @@ Oryzone.Popout = function(el, options)
         return getInstance(this);
     }
     
+    // utility function to raise events
+    var raiseEvent = function(eventName, $this)
+    {
+        $this.container.trigger("Oryzone_popout_" + eventName, [$this.container, $this]);
+    };
     
     // utility function that creates a background clickable glass pane
     var createGlassPane = function()
@@ -495,6 +500,7 @@ Oryzone.Popout = function(el, options)
         // removes all the functionalities of the plugin
         teardown : function()
         {
+            raiseEvent("destroying", this);
             // removes the attached data
             this.container.removeData(this.name);
             
@@ -512,6 +518,7 @@ Oryzone.Popout = function(el, options)
             this.button = undefined;
             this.closeButton = undefined;
             this.content = undefined;
+            raiseEvent("destroyed", this);
         },
         
         // checks if the current popout is opened
@@ -523,6 +530,7 @@ Oryzone.Popout = function(el, options)
         // opens the popout element
         open : function()
         {
+            raiseEvent("opening", this);
             pos = calculateFinalPosition(
                     this.button.outerWidth(), 
                     this.button.outerHeight(),
@@ -544,17 +552,20 @@ Oryzone.Popout = function(el, options)
                 top     : pos[1] + "px",
                 display : this.options.displayOn
             });
-
+            
+            raiseEvent("opened", this);
             return this;
         },
 
         // closes the popout element
         close : function()
         {            
+            raiseEvent("closing", this);
             $.proxy(destroyGlassPane, this)();
             this.cancelDelayedClose();    
             this.content.removeClass(this.options.openClass)
                         .css('display', this.options.displayOff);
+            raiseEvent("closed", this);
             return this;
         },
 
