@@ -25,14 +25,28 @@ Oryzone.Popout = function(el, options)
     
     // Adds destroyed event, raised when an element is removed from the DOM
     // from javascript MVC (http://javascriptmvc.com/)
-    var oldClean = jQuery.cleanData;
-    $.cleanData = function( elems ) {
-        for ( var i = 0, elem;
-        (elem = elems[i]) !== undefined; i++ ) {
-            $(elem).triggerHandler("destroyed");
+    if(!$.event.special["destroyed"])
+    {
+        $.event.special["destroyed"] = {
+            remove: function( handleObj){
+                //call the handler
+                if(handleObj.removed || handleObj.handler.removed) return;
+                var event = $.Event( "destroyed" );
+                event.preventDefault();
+                event.stopPropagation(); 
+                handleObj.removed = true;
+                handleObj.handler.call( this, event )
+            },
+            setup : function(handleObj){}
         }
-        oldClean(elems);
-    };
+        var oldClean = $.cleanData
+        $.cleanData= function( elems ) {
+            for ( var i = 0, elem; (elem = elems[i]) != null; i++ ) {
+                $.event.remove( elem, 'destroyed' );
+            }
+            oldClean(elems)
+        }
+    }
     
     // the set of default options
     var defaults =
@@ -133,6 +147,36 @@ Oryzone.Popout = function(el, options)
                        'y': "-ph"}
         }
     };
+    
+    
+    // formulas table used to calculate distance
+    var cTabDistance =
+    {
+        'left' : {
+            'top'   : {'x': "-dx",
+                       'y': "-dy"},
+            'center': {'x': "-dx",
+                       'y': "+0"},
+            'bottom': {'x': "-dx",
+                       'y': "+dy"}
+        },
+        'center': {
+            'top'   : {'x': "+0",
+                       'y': "-dy"},
+            'center': {'x': "+0",
+                       'y': "+0"},
+            'bottom': {'x': "+0",
+                       'y': "+dy"}
+        },
+        'right': {
+            'top'   : {'x': "+dx",
+                       'y': "-dy"},
+            'center': {'x': "+dx",
+                       'y': "+0"},
+            'bottom': {'x': "+dx",
+                       'y': "+dy"}
+        }
+    };
 
     // normalizes a position reference by converting it to a 2 coordinate relative reference
     // E.g. converts NW (North-West) to ["top", "left"]
@@ -200,12 +244,12 @@ Oryzone.Popout = function(el, options)
             eval(
                 cTabPosition[pos_x][pos_y]['x'] + 
                 cTabAnchor[anch_x][anch_y]['x'] +
-                "+dx"
+                cTabDistance[pos_x][pos_y]['x']
             ),
             eval(
                 cTabPosition[pos_x][pos_y]['y'] + 
                 cTabAnchor[anch_x][anch_y]['y'] +
-                "+dy"
+                cTabDistance[pos_x][pos_y]['y']
             )
         ];
     };
@@ -247,11 +291,7 @@ Oryzone.Popout = function(el, options)
     // retrieved by a selector (if any)
     $.fn.popoutInstance = function()
     {
-        var instance = undefined;
-        if(this.data('popout') && (instance = getInstance(this)))
-            return instance;
-        
-        return undefined;
+        return getInstance(this);
     }
     
     
@@ -322,19 +362,19 @@ Oryzone.Popout = function(el, options)
         // the current version
         version: 1.0,
         
-        // a set of variables that should not be modified at runtime
-        _private : {
-            timeout : null,
-            defaults: 
-            {
-                container : {},
-                content : {}
-            }
-        },
-        
         // Initializes the object
         init: function(el, options)
         {
+            // initializes a set of variables that should not be modified at runtime
+            this._private = {
+                timeout : null,
+                defaults: 
+                {
+                    container : {},
+                    content : {}
+                }
+            };
+            
             // save this instance in jQuery data
             el.data(this.name, this);
 
@@ -352,7 +392,9 @@ Oryzone.Popout = function(el, options)
             this._private.defaults.content = {
                 position  : this.content.css("position"),
                 "z-index" : this.content.css("z-index"),
-                top       : this.content.css("top")
+                top       : this.content.css("top"),
+                left      : this.content.css("left"),
+                display   : this.content.css("display")
             };
         
             this.content.css({"position" : this.options.contentPosition,
@@ -508,12 +550,11 @@ Oryzone.Popout = function(el, options)
 
         // closes the popout element
         close : function()
-        {
+        {            
             $.proxy(destroyGlassPane, this)();
             this.cancelDelayedClose();    
             this.content.removeClass(this.options.openClass)
                         .css('display', this.options.displayOff);
-
             return this;
         },
 
@@ -551,7 +592,7 @@ Oryzone.Popout = function(el, options)
 
         // cancel the delay close timeout (avoid closing the popout)
         cancelDelayedClose : function()
-        {
+        {            
             if(this._private.timeout)
                 clearTimeout(this._private.timeout);
 
