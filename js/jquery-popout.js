@@ -1,18 +1,25 @@
-/*!
- * jQuery-popOut vers. 1.0
- * developed by Luciano Mammino and Mangano Andrea, sponsored by ORYZONE (http://oryzone.com)
- * 
- * Released under MIT license (http://en.wikipedia.org/wiki/MIT_License)
- * 
- * Bug reports, suggestions, compliments? Use github: https://github.com/Oryzone/jQuery-popOut
+/**
+ * jQuery eTruncate is a plugin that easily allows you to create popout elements
+ * such as dropdown menus, tooltips, megamenus, popovers etc...
+ * @fileOverview jQuery Popout plugin
+ * @author <a href="mailto:lmammino@oryzone.com">Luciano Mammino</a>
+ * @author <a href="mailto:amangano@oryzone.com">Andrea Mangano</a>
+ * @copyright (c) 2011 <ahref="http://oryzone.com">ORYZONE</a>
+ * @license MIT license (http://en.wikipedia.org/wiki/MIT_License)
+ * @version 1.0
  */
-
 
 // initializes the Oryzone namespace if needed
 if(typeof(Oryzone)=="undefined")
+    /**
+     * @namespace Holds all the Oryzone js plugins
+     */
     Oryzone = {};
 
-// constructor
+/**
+ *  Createns a new instance of Popout
+ *  @class instance of Popout for a given element 
+ */ 
 Oryzone.Popout = function(el, options)
 {
     if(el)
@@ -48,27 +55,51 @@ Oryzone.Popout = function(el, options)
         }
     }
     
-    // animation object prototypes
+    /**
+     * @namespace Holds all the Popout base animations classes
+     */
     Oryzone.PopoutAnimation = {};
+    
+    /**
+     * @class simple animation class that does not provide real animations.
+     * It can be easily extended to create custom animation objects
+     */
     Oryzone.PopoutAnimation.none = function()
     {
+        /**
+         * @function sets the current DOM element the animation should work with
+         */
         this.setElement = function(element)
         {
             this.element = element;
         };
 
+        /**
+         * @function sets the final position of the DOM element to display. The
+         * position is represented by a 2 items array, the first contains the left distance
+         * (in pixel) from the anchor point and the second the top distance
+         */
         this.setPosition = function(position)
         {
             this.position = position;
         };
         
+        /**
+         * @function sets the options.
+         */
         this.setOptions = function(options)
         {
             this.options = options;
         };
-
+        
+        /**
+         * @function callback called before the open method
+         */
         this.beforeOpen = function(){};
         
+        /**
+         * @function handles the opening animation
+         */
         this.open = function(afterAnimation){
             this.element.css({
                 left    : this.position[0] + "px",
@@ -78,15 +109,24 @@ Oryzone.Popout = function(el, options)
             afterAnimation();
         };
         
+        /**
+         * @function callback called before the close method
+         */
         this.beforeClose = function(){};
         
+        /**
+         * @function handles the close animation
+         */
         this.close = function(afterAnimation){
             this.element.css('display', this.options.displayOff);
             afterAnimation();
         };
     };
     
-    //simple slideUp and slideDown effect
+    /**
+     * @class slide animation class. Provides a simple implementation for showing
+     * the popout with a slideDown effect and hiding it with a slideUp effect
+     */
     Oryzone.PopoutAnimation.slide = function()
     {
         return $.extend({}, new Oryzone.PopoutAnimation.none(), {
@@ -147,6 +187,10 @@ Oryzone.Popout = function(el, options)
         });
     };
     
+    /**
+     * @class fade animation class. Provides a simple implementation for showing
+     * the popout with a fadeIn effect and hiding it with a fadeOut effect
+     */
     Oryzone.PopoutAnimation.fade = function()
     {
         return $.extend({}, new Oryzone.PopoutAnimation.none(), {
@@ -181,6 +225,9 @@ Oryzone.Popout = function(el, options)
         });
     };
     
+    /**
+     * @class expand animation class.
+     */
     Oryzone.PopoutAnimation.expand = function()
     {
         return $.extend({}, new Oryzone.PopoutAnimation.none(), {
@@ -257,32 +304,36 @@ Oryzone.Popout = function(el, options)
         });
     }
     
-    // the set of default options
+    /**
+     * The set of default options
+     * @name DefaultOptions
+     * @memberOf $.fn.popout
+     */
     var defaults =
     {
-        'button'            : '.popout-button',
-        'content'           : '.popout-content',
-        'closeButton'       : '.popout-close', 
-        'openClass'         : 'popout-open',
-        'openOnHover'       : false,
-        'openOnClick'       : true,
-        'closeOnHoverOut'   : true,
-        'closeOnClickOut'   : false,
-        'closeDelay'        : 500,
-        'useCloseButton'    : true,
-        'z-index'           : 9999,
-        'contentPosition'   : 'absolute',
-        'displayOn'         : 'block',
-        'displayOff'        : 'none',
-        'position'          : 'data',
-        'anchor'            : 'data',
-        'distance'          : 'data',
-        'defaultPosition'   : 'SW',
-        'defaultAnchor'     : 'NW',
-        'defaultDistance'   : 0,
- 	'animation'         : 'none',
-        'animationSpeed'    : 'fast',
-        'animationEasing'   : 'linear'
+        'button'            : '.popout-button',     // the selector to use to identify the popout button
+        'content'           : '.popout-content',    // the selector to use to identify the popout content
+        'closeButton'       : '.popout-close',      // the selector to use to identify the popout close button
+        'openClass'         : 'popout-open',        // the name of the class to attach to the currently opened popouts
+        'openOnHover'       : false,                // if true opens the popout when hovering its related button
+        'openOnClick'       : true,                 // if true opens the popout when clicking its related button
+        'closeOnHoverOut'   : true,                 // if true closes the popout when hovering out from the related button
+        'closeOnClickOut'   : false,                // if true closes the popout when clicking its related button
+        'closeDelay'        : 500,                  // the amount of time to wait before closing the popoun after an hover out
+        'useCloseButton'    : true,                 // if true enables the close button for a popout (if any)
+        'z-index'           : 9999,                 // the z-index assigned to the popout content
+        'contentPosition'   : 'absolute',           // the css position attribute to give to the popout content
+        'displayOn'         : 'block',              // the css display attribute to give to visible popout content
+        'displayOff'        : 'none',               // the css display attribute to give to invisible popout content
+        'position'          : 'data',               // the relative position of the popout content (relative to the popout button anchor)
+        'anchor'            : 'data',               // the anchor point of the content on the popout button
+        'distance'          : 'data',               // an additional distance to add to space the popout content out from its button
+        'defaultPosition'   : 'SW',                 // the default position
+        'defaultAnchor'     : 'NW',                 // the default anchor
+        'defaultDistance'   : 0,                    // the default distance
+ 	'animation'         : 'none',               // the animation to use ('none', 'slide', 'fade', 'expand' or provide a custom animation object)
+        'animationSpeed'    : 'fast',               // the animation speed
+        'animationEasing'   : 'swing'               // the animation easing
     };
 
 
@@ -415,6 +466,15 @@ Oryzone.Popout = function(el, options)
             }
         }
         
+        if(!(animation.beforeOpen && "function" == typeof animation.beforeOpen &&
+             animation.open && "function" == typeof animation.open &&
+             animation.beforeClose && "function" == typeof animation.beforeClose &&
+             animation.close && "function" == typeof animation.close &&
+             animation.setPosition && "function" == typeof animation.setPosition &&
+             animation.setElement && "function" == typeof animation.setElement &&
+             animation.setOptions && "function" == typeof animation.setOptions))
+            throw "InvalidArgumentException: The given animation object is not a valid animation";
+        
         return animation;
     };
 
@@ -501,7 +561,12 @@ Oryzone.Popout = function(el, options)
         return el.data('oryzone_popout');
     }
     
-    // jQuery plugin initialization
+    /**
+     * Initializes the plugin on one or more DOM elements:
+     * @example $(selector).popout(options)
+     * 
+     * @param options an object containing the options
+     */
     $.fn.popout = function(options)
     {  
         var args = $.makeArray(arguments),
@@ -527,8 +592,10 @@ Oryzone.Popout = function(el, options)
         });	
     };
     
-    // retrieves the first instance of the popout attached to the list of elements
-    // retrieved by a selector (if any)
+    /**
+     * retrieves the first instance of the popout attached to the list of 
+     * elements retrieved by a selector (if any)
+     */
     $.fn.popoutInstance = function()
     {
         return getInstance(this);
@@ -601,14 +668,20 @@ Oryzone.Popout = function(el, options)
     
     // defines the Popout prototype
     $.extend(Oryzone.Popout.prototype, {
+        /** @lends Oryzone.Popout */
         
-        // the name of the instance
+        /** the name of the instance */
         name: "oryzone_popout",
         
-        // the current version
+        /** the current version */
         version: 1.0,
         
-        // Initializes the object
+        /** 
+         * Initializes the object
+         * @constructs
+         * @param el {DomElement} the referred DOM element
+         * @param options the set of options
+         */
         init: function(el, options)
         {
             // initializes a set of variables that should not be modified at runtime
@@ -733,7 +806,9 @@ Oryzone.Popout = function(el, options)
             this.init(this.container, options);
         },
         
-        // destroys the instance
+        /**
+         * Destroys the current instance releasing the related DOM element
+         */
         destroy : function()
         {
             this.teardown();
@@ -763,13 +838,13 @@ Oryzone.Popout = function(el, options)
             raiseEvent("destroyed", this);
         },
         
-        // checks if the current popout is opened
+        /** checks if the current popout is opened */
         isOpen : function()
         {
             return this.content.hasClass(this.options.openClass);
         },
 
-        // opens the popout element
+        /** opens the popout element */
         open : function()
         {
             var self = this;
@@ -805,7 +880,7 @@ Oryzone.Popout = function(el, options)
             return this;
         },
 
-        // closes the popout element
+        /** closes the popout element */
         close : function()
         {            
             var self = this;
@@ -821,7 +896,7 @@ Oryzone.Popout = function(el, options)
             return this;
         },
 
-        // open the popout if closed and closes it otherwise
+        /** open the popout if closed and closes it otherwise */
         toggle : function()
         {
             if(this.isOpen())
@@ -832,7 +907,7 @@ Oryzone.Popout = function(el, options)
             return this;
         },
 
-        // closes the popout after `delay` millisecs
+        /** closes the popout after `delay` millisecs */
         delayedClose : function(delay)
         {
             if(delay)
@@ -853,7 +928,7 @@ Oryzone.Popout = function(el, options)
             return this;
         },
 
-        // cancel the delay close timeout (avoid closing the popout)
+        /** cancel the delay close timeout (avoid closing the popout) */
         cancelDelayedClose : function()
         {            
             if(this._private.timeout)
