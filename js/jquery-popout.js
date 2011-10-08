@@ -48,6 +48,215 @@ Oryzone.Popout = function(el, options)
         }
     }
     
+    // animation object prototypes
+    Oryzone.PopoutAnimation = {};
+    Oryzone.PopoutAnimation.none = function()
+    {
+        this.setElement = function(element)
+        {
+            this.element = element;
+        };
+
+        this.setPosition = function(position)
+        {
+            this.position = position;
+        };
+        
+        this.setOptions = function(options)
+        {
+            this.options = options;
+        };
+
+        this.beforeOpen = function(){};
+        
+        this.open = function(afterAnimation){
+            this.element.css({
+                left    : this.position[0] + "px",
+                top     : this.position[1] + "px",
+                display : this.options.displayOn
+            });
+            afterAnimation();
+        };
+        
+        this.beforeClose = function(){};
+        
+        this.close = function(afterAnimation){
+            this.element.css('display', this.options.displayOff);
+            afterAnimation();
+        };
+    };
+    
+    //simple slideUp and slideDown effect
+    Oryzone.PopoutAnimation.slide = function()
+    {
+        return $.extend({}, new Oryzone.PopoutAnimation.none(), {
+
+           beforeOpen : function(){
+               if("undefined" == typeof this.elementHeight)
+               {
+                   this.elementHeight = this.element.height();
+                   this.elementPaddingTop = this.element.css("paddingTop");
+                   this.elementPaddingBottom = this.element.css("paddingBottom");
+               }
+           },
+
+           open : function(afterAnimation){
+               this.element.css({
+                    left    : this.position[0] + "px",
+                    top     : this.position[1] + "px",
+                    display : this.options.displayOn,
+                    height  : 0,
+                    paddingTop : '0px',
+                    paddingBottom : '0px'
+                });
+               this.element.stop().animate(
+                    {
+                        height: this.elementHeight,
+                        paddingTop : this.elementPaddingTop,
+                        paddingBottom : this.elementPaddingBottom
+                    },
+                    this.options.animationSpeed,
+                    this.options.animationEasing,
+                    afterAnimation
+               );
+           },
+
+           beforeClose : function(){},
+
+           close : function(afterAnimation){
+               var self = this;
+               this.element.stop().animate(
+                    {
+                        height: 0,
+                        paddingTop : '0px',
+                        paddingBottom : '0px'
+                    },
+                    this.options.animationSpeed,
+                    this.options.animationEasing,
+                    function(){
+                        self.element.css({
+                            'display'       : self.options.displayOff,
+                            'height'        : self.elementHeight,
+                            'paddingTop'    : self.elementPaddingTop,
+                            'paddingBottom' : self.elementPaddingBottom
+                        });
+                        afterAnimation();
+                    }
+               );
+           } 
+        });
+    };
+    
+    Oryzone.PopoutAnimation.fade = function()
+    {
+        return $.extend({}, new Oryzone.PopoutAnimation.none(), {
+           
+           beforeOpen : function(){},
+
+           open : function(afterAnimation){
+               this.element.css({
+                    left    : this.position[0] + "px",
+                    top     : this.position[1] + "px"
+                });
+               this.element.fadeIn(
+                    this.options.animationSpeed,
+                    this.options.animationEasing,
+                    afterAnimation   
+               );
+           },
+
+           beforeClose : function(){},
+
+           close : function(afterAnimation){
+               var self = this;
+               this.element.fadeOut(
+                    this.options.animationSpeed,
+                    this.options.animationEasing,
+                    function(){
+                        self.element.css('display', self.options.displayOff);
+                        afterAnimation();
+                    }
+               );
+           } 
+        });
+    };
+    
+    Oryzone.PopoutAnimation.expand = function()
+    {
+        return $.extend({}, new Oryzone.PopoutAnimation.none(), {
+           
+           beforeOpen : function(){
+               if("undefined" == typeof this.elementHeight)
+               {
+                   this.elementHeight = this.element.height();
+                   this.elementWidth = this.element.width();
+                   this.elementPaddingTop = this.element.css("paddingTop");
+                   this.elementPaddingRight = this.element.css("paddingRight");
+                   this.elementPaddingBottom = this.element.css("paddingBottom");
+                   this.elementPaddingLeft = this.element.css("paddingLeft");
+               }
+           },
+
+           open : function(afterAnimation){
+               this.element.css({
+                    left    : this.position[0] + "px",
+                    top     : this.position[1] + "px",
+                    display : this.options.displayOn,
+                    height  : 0,
+                    width   : 0,
+                    paddingTop : '0px',
+                    paddingRight : '0px',
+                    paddingBottom : '0px',
+                    paddingLeft : '0px'
+                });
+               this.element.stop().animate(
+                    {
+                        height : this.elementHeight,
+                        width : this.elementWidth,
+                        paddingTop : this.elementPaddingTop,
+                        paddingRight : this.elementPaddingRight,
+                        paddingBottom : this.elementPaddingBottom,
+                        paddingLeft : this.elementPaddingLeft
+                    },
+                    this.options.animationSpeed,
+                    this.options.animationEasing,
+                    afterAnimation
+               );
+           },
+
+           beforeClose : function(){},
+
+           close : function(afterAnimation){
+               var self = this;
+               this.element.stop().animate(
+                    {
+                        height: 0,
+                        width : 0,
+                        paddingTop : '0px',
+                        paddingRight : '0px',
+                        paddingBottom : '0px',
+                        paddingLeft : '0px'
+                    },
+                    this.options.animationSpeed,
+                    this.options.animationEasing,
+                    function(){
+                        self.element.css({
+                            'display'       : self.options.displayOff,
+                            'height'        : self.elementHeight,
+                            'width'         : self.elementWidth,
+                            'paddingTop'    : self.elementPaddingTop,
+                            'paddingRight'  : self.elementPaddingRight,
+                            'paddingBottom' : self.elementPaddingBottom,
+                            'paddingLeft'   : self.elementPaddingLeft
+                        });
+                        afterAnimation();
+                    }
+               );
+           }
+           
+        });
+    }
+    
     // the set of default options
     var defaults =
     {
@@ -70,7 +279,10 @@ Oryzone.Popout = function(el, options)
         'distance'          : 'data',
         'defaultPosition'   : 'SW',
         'defaultAnchor'     : 'NW',
-        'defaultDistance'   : 0 
+        'defaultDistance'   : 0,
+ 	'animation'         : 'none',
+        'animationSpeed'    : 'fast',
+        'animationEasing'   : 'linear'
     };
 
 
@@ -176,6 +388,34 @@ Oryzone.Popout = function(el, options)
             'bottom': {'x': "+dx",
                        'y': "+dy"}
         }
+    };
+    
+    // normalizes the animation parameter by instancing the right animation object
+    // if a generic string is given
+    var normalizeAnimation = function(animation)
+    {
+        if('string' == typeof animation)
+        {
+            switch(animation.toLowerCase())
+            {
+                case "none":
+                    return new Oryzone.PopoutAnimation.none();
+                    break;
+                case "slide":
+                    return new Oryzone.PopoutAnimation.slide();
+                    break;
+                case "fade":
+                    return new Oryzone.PopoutAnimation.fade();
+                    break;
+                case "expand":
+                    return new Oryzone.PopoutAnimation.expand();
+                    break;
+                default :
+                    throw "InvalidArgumentException: '" + animation + "' is not a valid animation";
+            }
+        }
+        
+        return animation;
     };
 
     // normalizes a position reference by converting it to a 2 coordinate relative reference
@@ -354,7 +594,8 @@ Oryzone.Popout = function(el, options)
     // on mouseout container handler
     var onMouseOut = function(event)
     {
-        if(this.isOpen && this.options.closeOnHoverOut)
+        
+        if(this.isOpen() && this.options.closeOnHoverOut)
             this.delayedClose();
     };
     
@@ -443,6 +684,7 @@ Oryzone.Popout = function(el, options)
             this.options.distance = normalizeDistance(this.options.distance);
             this.options.anchor = normalizeRef(this.options.anchor);
             this.options.position = normalizeRef(this.options.position);
+            this.options.animation = normalizeAnimation(this.options.animation);
             
             //calls the bind method to attach all the listeners
             this.bind();
@@ -530,7 +772,7 @@ Oryzone.Popout = function(el, options)
         // opens the popout element
         open : function()
         {
-            raiseEvent("opening", this);
+            var self = this;
             pos = calculateFinalPosition(
                     this.button.outerWidth(), 
                     this.button.outerHeight(),
@@ -543,29 +785,39 @@ Oryzone.Popout = function(el, options)
                     this.options.anchor[0],
                     this.options.anchor[1]
             );
+                
+            this.options.animation.setPosition(pos);
+            this.options.animation.setElement(this.content);
+            this.options.animation.setOptions(this.options);
+            this.options.animation.beforeOpen();
+            raiseEvent("opening", this);
 
             if(this.options.closeOnClickOut)
                 $.proxy(createGlassPane, this)();
+            
+            this.content.addClass(this.options.openClass);
 
-            this.content.addClass(this.options.openClass).css({
-                left    : pos[0] + "px",
-                top     : pos[1] + "px",
-                display : this.options.displayOn
+            this.content.addClass(this.options.openClass);
+            this.options.animation.open(function(){
+                raiseEvent("opened", self);
             });
             
-            raiseEvent("opened", this);
             return this;
         },
 
         // closes the popout element
         close : function()
         {            
+            var self = this;
+            this.options.animation.beforeClose();
             raiseEvent("closing", this);
             $.proxy(destroyGlassPane, this)();
-            this.cancelDelayedClose();    
-            this.content.removeClass(this.options.openClass)
-                        .css('display', this.options.displayOff);
-            raiseEvent("closed", this);
+            this.cancelDelayedClose();
+            this.content.removeClass(this.options.openClass);
+            this.options.animation.close(function(){
+               raiseEvent("closed", self); 
+            })
+            
             return this;
         },
 
