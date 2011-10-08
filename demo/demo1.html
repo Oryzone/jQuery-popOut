@@ -22,26 +22,43 @@
 			</div>
 		</header>
 		<section id="demo">
-		
-		<div class="popout-area">
-			
-			<a href="#" class="popout-button yellow">
-				Here for you to be clicked!
-			</a>
-			<div class="popout-content">
-				<blockquote><pre>I see skies of blue, 
-And clouds of white. 
-The bright blessed day, 
-The dark sacred night. 
-And I think to myself, 
-What a wonderful world.
+			<h2>Goo Goo Dolls</h2>
+			<div class="bio">
+				<span class="popout-area-text">
+					<a class="popout-button-text" href="#">Goo Goo Dolls</a>
+					<div class="popout-content bubble">
+						<div class="bubble-inner">
+							<a href="http://www.last.fm/music/Goo+Goo+Dolls"><img src="images/googoodolls.jpg"/></a>
+							<div class="bubble-arrow"></div>
+						</div>
+					</div>
+				</span> is an alternative rock band formed in 1985 in Buffalo, New York by guitarist/vocalist 
+				
+				<span class="popout-area-text">
+					<a class="popout-button-text" href="#">John Rzeznik</a>
+					<div class="popout-content bubble">
+						<div class="bubble-inner">
+							<a href="http://www.last.fm/music/John+Rzeznik"><img src="images/john-rzeznik.jpg"/></a>
+							<div class="bubble-arrow"></div>
+						</div>
+					</div>
+				</span> and bassist/vocalist 
+				
+				<span class="popout-area-text">
+					<a class="popout-button-text" href="#">Robby Takac</a>
+					<div class="popout-content bubble">
+						<div class="bubble-inner">
+							<a href="http://en.wikipedia.org/wiki/Robby_Takac"><img src="images/robby-takac.jpg"/></a>
+							<div class="bubble-arrow"></div>
+						</div>
+					</div>
+				</span>
+				. They are most famous for the hit “Iris”, featured on the soundtrack to the 1998 film City of Angels. Currently, the band consists of John Rzeznik (guitar, vocals), Robby Takac (vocals, bass) and Mike Malinin (drums). 
 
-- Luis Armstrong</pre></blockquote>
-<a href="#" class="popout-close">(Close)</a>
+				Early in their career, the Goo Goo Dolls were frequently dismissed by critics as mere imitators of The Replacements; however, the band refined its sound to be more mainstream, which helped it become one of the most popular adult alternative rock bands of the latter half of the ’90s, selling millions of records to audiences largely unfamiliar with their inspirations. That’s no bitch on the band, either — their music simply improved in craft and accessibility as the years progressed, and radio happened to be receptive to what a decade earlier would have been considered collegiate power pop. Thus, the band landed two huge hits with the acoustic ballads “Name” and “Iris.”
+
+				The Goo Goo Dolls were formed in Buffalo, NY, in 1985 by guitarist/vocalist Johnny Rzeznik and bassist Robby Takac, initially under the name the Sex Maggots (the new name was chosen from an ad in True Detective magazine at the behest of a local club owner).
 			</div>
-			
-		</div>
-		
 		</section>
 	</div>
 	<script type="text/javascript" src="extra/js/jquery-1.6.3.js"></script>
@@ -49,7 +66,13 @@ What a wonderful world.
 	<script type="text/javascript">
 		(function($){
 			
-			$(".popout-area").popout();
+			$(".popout-area-text").popout({
+				button 		: ".popout-button-text",
+				position 	: "N",
+				anchor 		: "S",	
+				distance 	: 15,
+				openOnHover : true
+			});
 			
 		})(jQuery);
 	</script>

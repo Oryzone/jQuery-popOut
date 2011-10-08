@@ -181,3 +181,26 @@ header
 {
 	right:0; bottom:0;
 }
+
+.bubble
+{
+	background: #000;
+}
+
+.bubble-inner
+{
+	padding: 10px;
+}
+
+.bubble-arrow
+{
+	bottom: -15px;
+	left: 50%;
+	margin-left: -15px;
+	border-left: 15px solid transparent;
+	border-right: 15px solid transparent;
+	border-top: 15px solid #000;
+	height: 0;
+	width: 0;
+	position: absolute;
+}
