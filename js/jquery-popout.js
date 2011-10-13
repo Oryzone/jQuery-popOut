@@ -1,5 +1,5 @@
 /**
- * jQuery eTruncate is a plugin that easily allows you to create popout elements
+ * jQuery popOut is a plugin that easily allows you to create popout elements
  * such as dropdown menus, tooltips, megamenus, popovers etc...
  * @fileOverview jQuery Popout plugin
  * @author <a href="mailto:lmammino@oryzone.com">Luciano Mammino</a>
